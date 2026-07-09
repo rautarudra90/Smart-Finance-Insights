@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Smart Finance Insights{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ================= Cards ================= -->
+<div class="row mt-4">
+
+<div class="col-lg-3 col-md-6 mb-4">
+<div class="dashboard-card income">
+<h5>Total Income</h5>
+<h3>₹{{ "%.2f"|format(income) }}</h3>
+<p>All-time income</p>
+</div>
+</div>
+
+<div class="col-lg-3 col-md-6 mb-4">
+<div class="dashboard-card expense">
+<h5>Total Expenses</h5>
+<h3>₹{{ "%.2f"|format(expense) }}</h3>
+<p>All-time expenses</p>
+</div>
+</div>
+
+<div class="col-lg-3 col-md-6 mb-4">
+<div class="dashboard-card savings">
+<h5>Total Savings</h5>
+<h3>₹{{ "%.2f"|format(savings) }}</h3>
+<p>Income - Expenses</p>
+</div>
+</div>
+
+<div class="col-lg-3 col-md-6 mb-4">
+<div class="dashboard-card budget">
+<h5>Budget Status</h5>
+{% if total_budget > 0 %}
+<h3>{{ budget_pct }}%</h3>
+<p>of monthly budget used</p>
+{% else %}
+<h3>₹0</h3>
+<p>Budget not set</p>
+{% endif %}
+</div>
+</div>
+
+</div>
+
+<!-- ================= This Month Summary ================= -->
+<div class="table-card">
+<h4>This Month ({{ month_label }})</h4>
+<div class="row text-center">
+    <div class="col-md-4">
+        <p class="text-muted mb-1">Income</p>
+        <h5 class="text-success">₹{{ "%.2f"|format(month_income) }}</h5>
+    </div>
+    <div class="col-md-4">
+        <p class="text-muted mb-1">Expenses</p>
+        <h5 class="text-danger">₹{{ "%.2f"|format(month_expense) }}</h5>
+    </div>
+    <div class="col-md-4">
+        <p class="text-muted mb-1">Savings</p>
+        <h5 class="{{ 'text-success' if month_savings >= 0 else 'text-danger' }}">₹{{ "%.2f"|format(month_savings) }}</h5>
+    </div>
+</div>
+</div>
+
+<!-- ================= Charts ================= -->
+<div class="row mt-2">
+<div class="col-md-6">
+<div class="table-card">
+<h4>Income vs Expenses (This Month)</h4>
+<canvas id="incomeExpenseChart"></canvas>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="table-card">
+<h4>Expenses by Category</h4>
+{% if chart_data.cat_labels|length > 0 %}
+<canvas id="categoryChart"></canvas>
+{% else %}
+<p class="text-muted text-center mt-4">No expenses recorded this month.</p>
+{% endif %}
+</div>
+</div>
+</div>
+
+<!-- ================= Quick Actions ================= -->
+<div class="table-card">
+<h4>Quick Actions</h4>
+<div class="row">
+<div class="col-md-3 mb-3">
+<a href="/income" class="btn btn-success w-100"><i class="fa-solid fa-plus"></i> Add Income</a>
+</div>
+<div class="col-md-3 mb-3">
+<a href="/expense" class="btn btn-danger w-100"><i class="fa-solid fa-minus"></i> Add Expense</a>
+</div>
+<div class="col-md-3 mb-3">
+<a href="/budget" class="btn btn-warning w-100 text-white"><i class="fa-solid fa-wallet"></i> Set Budget</a>
+</div>
+<div class="col-md-3 mb-3">
+<a href="/reports" class="btn btn-primary w-100"><i class="fa-solid fa-chart-pie"></i> View Report</a>
+</div>
+</div>
+</div>
+
+<!-- ================= Recent Transactions ================= -->
+<div class="table-card mt-4">
+<div class="d-flex justify-content-between align-items-center">
+<h4>Recent Transactions</h4>
+<a href="/reports" class="small">View All</a>
+</div>
+<div class="table-responsive">
+<table class="table table-bordered table-hover">
+<thead class="table-primary">
+<tr>
+<th>Date</th>
+<th>Category</th>
+<th>Type</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+{% if recent|length == 0 %}
+<tr><td colspan="4" class="text-center text-muted">No transactions available.</td></tr>
+{% else %}
+{% for t in recent %}
+<tr>
+<td>{{ t['date'] }}</td>
+<td>{{ t['label'] }}</td>
+<td>
+{% if t['type'] == 'Income' %}
+<span class="badge bg-success">Income</span>
+{% else %}
+<span class="badge bg-danger">Expense</span>
+{% endif %}
+</td>
+<td class="{{ 'text-success' if t['type']=='Income' else 'text-danger' }} fw-bold">
+{{ '+' if t['type']=='Income' else '-' }}₹{{ "%.2f"|format(t['amount']) }}
+</td>
+</tr>
+{% endfor %}
+{% endif %}
+</tbody>
+</table>
+</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ieCtx = document.getElementById('incomeExpenseChart').getContext('2d');
+new Chart(ieCtx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_data.weeks | tojson }},
+        datasets: [
+            {
+                label: 'Income',
+                data: {{ chart_data.income | tojson }},
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40,167,69,0.1)',
+                tension: 0.3
+            },
+            {
+                label: 'Expenses',
+                data: {{ chart_data.expense | tojson }},
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220,53,69,0.1)',
+                tension: 0.3
+            }
+        ]
+    },
+    options: { responsive: true }
+});
+
+{% if chart_data.cat_labels|length > 0 %}
+const catCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(catCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ chart_data.cat_labels | tojson }},
+        datasets: [{
+            data: {{ chart_data.cat_values | tojson }},
+            backgroundColor: ['#ff6384','#36a2eb','#ffcd56','#4bc0c0','#9966ff','#ff9f40','#c9cbcf','#8bc34a']
+        }]
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

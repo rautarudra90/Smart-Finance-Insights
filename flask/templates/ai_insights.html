@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}AI Insights | Smart Finance Insights{% endblock %}
+{% block page_title %}AI Financial Insights{% endblock %}
+
+{% block extra_head %}
+<style>
+.gauge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+}
+.gauge-circle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(var(--gauge-color) {{ score * 3.6 }}deg, #e9ecef 0deg);
+    position: relative;
+}
+.gauge-inner {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.gauge-inner h2 {
+    margin: 0;
+    font-weight: bold;
+    color: var(--gauge-color);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="row mt-4">
+
+<div class="col-md-8">
+<div class="table-card h-100">
+<h4>AI Financial Insight</h4>
+{% for ins in insights %}
+<div class="mb-4 pb-3 {{ 'border-bottom' if not loop.last else '' }}">
+<h5><i class="fa-solid {{ ins.icon }} {{ ins.color }}"></i> {{ ins.title }}</h5>
+<p class="mb-1">{{ ins.text }}</p>
+<p class="text-muted mb-0"><strong>{{ ins.action }}</strong></p>
+</div>
+{% endfor %}
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="table-card h-100 text-center">
+<h4>Financial Health Score</h4>
+<div class="gauge-wrap" style="--gauge-color: {{ status_color }};">
+<div class="gauge-circle">
+<div class="gauge-inner">
+<h2>{{ score }}</h2>
+<small class="text-muted">/100</small>
+</div>
+</div>
+<p class="mt-3 mb-0">Status: <strong style="color: {{ status_color }};">{{ status }}</strong></p>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="table-card mt-2">
+<h4>Spending Summary</h4>
+<ul class="mb-0">
+{% if summary.highest_category %}
+<li>Highest Expense Category: <strong>{{ summary.highest_category }}</strong> (₹{{ "%.2f"|format(summary.highest_amount) }})</li>
+{% else %}
+<li>No expenses recorded yet this month.</li>
+{% endif %}
+<li>Total Savings this Month: <strong class="{{ 'text-success' if summary.total_savings >= 0 else 'text-danger' }}">₹{{ "%.2f"|format(summary.total_savings) }}</strong></li>
+{% if month_income > 0 %}
+<li>You are saving <strong>{{ summary.savings_pct }}%</strong> of your income this month.</li>
+{% endif %}
+</ul>
+
+<div class="alert alert-info mt-3 mb-0">
+<i class="fa-solid fa-lightbulb"></i>
+{% if score >= 70 %}
+Keep it up! You are on the right track to achieve your financial goals.
+{% elif score >= 50 %}
+You're doing okay, but there's room to improve your savings and budget discipline.
+{% else %}
+Your finances need attention. Review your budget and cut down non-essential spending.
+{% endif %}
+</div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Settings | Smart Finance Insights{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="table-card mt-4">
+<h4>Preferences</h4>
+
+<div class="form-check form-switch mb-3">
+<input class="form-check-input" type="checkbox" checked disabled>
+<label class="form-check-label">Enable Email Notifications</label>
+</div>
+
+<div class="form-check form-switch mb-3">
+<input class="form-check-input" type="checkbox" disabled>
+<label class="form-check-label">Enable SMS Alerts</label>
+</div>
+
+<div class="form-check form-switch mb-3">
+<input class="form-check-input" type="checkbox" disabled>
+<label class="form-check-label">Dark Mode (coming soon)</label>
+</div>
+<small class="text-muted">Preference toggles are placeholders for a future release.</small>
+
+</div>
+
+<div class="table-card mt-4">
+<h4>Security</h4>
+
+<form method="POST" action="/settings">
+<input type="hidden" name="action" value="change_password">
+
+<div class="mb-3">
+<label>New Password</label>
+<input type="password" name="password" class="form-control" placeholder="New Password" required minlength="6">
+</div>
+
+<div class="mb-3">
+<label>Confirm Password</label>
+<input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password" required minlength="6">
+</div>
+
+<button class="btn btn-danger" type="submit">
+<i class="fa-solid fa-shield"></i> Update Security
+</button>
+
+</form>
+
+</div>
+
+<div class="table-card mt-4">
+<h4>Account Actions</h4>
+
+<a href="/export-data" class="btn btn-warning mb-2">
+<i class="fa-solid fa-download"></i> Export Data (CSV)
+</a>
+
+<br>
+
+<form method="POST" action="/settings" onsubmit="return confirm('This will permanently delete your account and all data. Are you sure?');">
+<input type="hidden" name="action" value="delete_account">
+<button type="submit" class="btn btn-outline-danger">
+<i class="fa-solid fa-trash"></i> Delete Account
+</button>
+</form>
+
+</div>
+
+{% endblock %}

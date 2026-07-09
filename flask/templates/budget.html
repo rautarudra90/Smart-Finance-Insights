@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Budget | Smart Finance Insights{% endblock %}
+{% block page_title %}Budget Planner{% endblock %}
+
+{% block content %}
+
+<div class="table-card mt-4">
+<h4>Set Monthly Budget</h4>
+
+<form method="POST" action="/budget">
+<div class="row">
+
+<div class="col-md-4 mb-3">
+<label>Category</label>
+<select name="category" class="form-control" required>
+    <option value="" disabled selected>Select category</option>
+    {% for c in categories %}
+    <option value="{{ c }}">{{ c }}</option>
+    {% endfor %}
+</select>
+</div>
+
+<div class="col-md-4 mb-3">
+<label>Budget Amount (₹)</label>
+<input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="₹ 0" required>
+</div>
+
+<div class="col-md-4 mb-3">
+<label>Month</label>
+<input type="month" name="month" class="form-control" required>
+</div>
+
+</div>
+
+<button class="btn btn-primary" type="submit">
+<i class="fa-solid fa-plus"></i> Save Budget
+</button>
+</form>
+</div>
+
+<div class="table-card">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h4 class="mb-0">Budget Overview - {{ month_label }}</h4>
+</div>
+
+{% if overview|length == 0 %}
+<p class="text-muted text-center">No budget set for this month yet. Add one above to get started.</p>
+{% else %}
+
+{% for b in overview %}
+<div class="mb-4">
+<div class="d-flex justify-content-between">
+<span><strong>{{ b.category }}</strong> <span class="badge {{ b.color }}">{{ b.status }}</span></span>
+<span>
+₹{{ "%.0f"|format(b.spent) }} / ₹{{ "%.0f"|format(b.budget) }}
+<form method="POST" action="/budget/delete/{{ b.id }}" style="display:inline" onsubmit="return confirm('Remove this budget category?');">
+<button type="submit" class="btn btn-sm btn-outline-danger ms-2"><i class="fa-solid fa-trash"></i></button>
+</form>
+</span>
+</div>
+<div class="progress">
+<div class="progress-bar {{ b.color }}" style="width: {{ b.pct }}%"></div>
+</div>
+</div>
+{% endfor %}
+
+<hr>
+<div class="row text-center">
+<div class="col-md-4">
+<p class="text-muted mb-1">Total Budget</p>
+<h5 class="text-primary">₹{{ "%.2f"|format(total_budget) }}</h5>
+</div>
+<div class="col-md-4">
+<p class="text-muted mb-1">Total Spent</p>
+<h5 class="text-danger">₹{{ "%.2f"|format(total_spent) }}</h5>
+</div>
+<div class="col-md-4">
+<p class="text-muted mb-1">Remaining</p>
+<h5 class="{{ 'text-success' if remaining >= 0 else 'text-danger' }}">₹{{ "%.2f"|format(remaining) }}</h5>
+</div>
+</div>
+
+{% endif %}
+</div>
+
+{% endblock %}
